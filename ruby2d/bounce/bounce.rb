@@ -89,7 +89,7 @@ end
 
 update do
 	#Init crashes and bounces
-	crash = false
+	crash = 0
 	
 	#Decide whether to increment ticker
 	if @running
@@ -106,7 +106,7 @@ update do
 		#If the distance exceeds the screen, it has hit the floor
 		if @avatar.y + newy >= Window.height
 			@freefall = -(@freefall - (@freefall * (W_FRICTION - ELASTICITY)))
-			crash = true
+			crash += 1
 			newy = distance @freefall, ACCEL, tdif.to_f
 		end
 		@avatar.y += newy.round(0)
@@ -114,16 +114,17 @@ update do
 		#If the ball hits the side of the screen
 		xfix = @avatar.x + newx
 		if xfix >= Window.width || xfix <= 0
-			crash = true
-			@xspeed = -(@xspeed - (@xspeed * (W_FRICTION - ELASTICITY)))
+			crash += 1
+			@xspeed = -@xspeed
 		end
 		
 		#Add another slowing effect to X on bounce
-		if crash
-			@xspeed = (@xspeed - (@xspeed * (W_FRICTION - ELASTICITY)))
+		if crash > 0
+			crash.downto(1) do
+				@xspeed = (@xspeed - (@xspeed * (W_FRICTION - ELASTICITY)))
+			end
 			newx = distance @xspeed, 0, tdif.to_f
 		end
-		
 		@avatar.x += newx.round(0)
 		
 		start_tick = Time.new
@@ -156,7 +157,7 @@ update do
 		@xspeed = @xspeed.round(3)
 		
 		#Change color of avatar on impact
-		if crash
+		if crash > 0
 			@avatar.color = BAD
 		else
 			@avatar.color = GOOD
